@@ -12,14 +12,14 @@ import datetime
 #edit to commit
 
 # define constants in seconds
-SECONDS_PER_ITEM = 4
-OVERHEAD_SECONDS = 45
-CUSTOMER_ARRIVAL_RATE = 30 
+SECONDS_PER_ITEM = 2 # (from 4)
+OVERHEAD_SECONDS = 1 # (from 45)
+CUSTOMER_ARRIVAL_RATE = 4 # (from 30)
 MIN_ITEMS = 6
-MAX_ITEMS = 20
-SIMULATE_DURATION = 2 * 60 * 60 # 2 hours in seconds
-STATUS_UPDATE_RATE = 50
-NUM_SIMULATIONS = 12
+MAX_ITEMS = 20 
+SIMULATE_DURATION = 100 # 2 hours in seconds (from 7200)
+STATUS_UPDATE_RATE = 1 # (from 50)
+NUM_SIMULATIONS = 2 # (from 12)
 
 # Define classes
 class Queue:
@@ -45,76 +45,85 @@ class Customer:
         self.checkout_time = (num_items * SECONDS_PER_ITEM) + OVERHEAD_SECONDS
     
 class Register:
-    def __init__(self, ):
-        self.queue = Queue()
+    def __init__(self):
+        self.queue = Queue() # Initialize an empty queue
         self.current_customer = None
         self.idle_time = 0
         self.wait_time = 0
         self.total_customers_served = 0
         self.total_items_served = 0
         
-    def add_customer(self, customer):
+    def add_customer(self, customer): # Add customer to register queue if empty
         if self.current_customer is None:
             self.current_customer = customer
         else:
             self.queue.enqueue(customer)
         
-    def serve_customer(self):
+    def serve_customer(self): # Increment down checkout time
         if self.current_customer:
             self.current_customer.checkout_time -= 1
         
-            if self.current_customer.checkout_time <= 0:
-                self.total_customers_served += 1
-                self.total_items_served += self.current_customer.num_items
-                self.current_customer = None
+            if self.current_customer.checkout_time <= 0: # When customer is done
+                self.total_customers_served += 1 
+                self.total_items_served += self.current_customer.num_items # Increment total num_items
+                self.current_customer = None  # Register is free
                 
                 if not self.queue.isEmpty():
-                    self.current_customer = self.queue.dequeue()
+                    self.current_customer = self.queue.dequeue() 
             else:
-                self.idle_time += 1
+                self.idle_time += 1 # Count idle time 
                 
     def update_wait_time(self):
         if not self.queue.isEmpty():
-            self.wait_time += self.queue.size()
+            self.wait_time += self.queue.size() # Adjusting wait time depending on queue size
             
-def simulation(extra_register=False):
+def simulation(extra_register=False): # Later be able to use the extra register
     NUM_REGISTERS = 4
     EXPRESS_REGISTER = 1
     if extra_register:
         NUM_REGISTERS += 1  # Add a 6th non-express register
     TOTAL_REGISTERS = NUM_REGISTERS + EXPRESS_REGISTER
-    registers = [Register() for _ in range(TOTAL_REGISTERS)]
+    
+    registers = [Register() for _ in range(TOTAL_REGISTERS)] # Create instances of the Register() class
     
     def find_shortest_register(registers):
-        """Returns a random register from the ones with the shortest queue."""
+        """Finds the best available register, prioritizing empty ones."""
+        empty_registers = [r for r in registers if r.current_customer is None and r.queue.isEmpty()]
+        if empty_registers:
+            return random.choice(empty_registers)  # Prioritize empty registers
+        
+        # If no empty register, fall back to shortest queue
         min_size = min(r.queue.size() for r in registers)
         shortest_registers = [r for r in registers if r.queue.size() == min_size]
         return random.choice(shortest_registers)
+
     
     for current_time in range(SIMULATE_DURATION):
+        for register in registers:
+            register.serve_customer()
+            register.update_wait_time()
+            
         if current_time % CUSTOMER_ARRIVAL_RATE == 0:  # New customer every 30s
             num_items = random.randint(MIN_ITEMS, MAX_ITEMS)
             customer = Customer(num_items, arrival_time=current_time)
     
-            if num_items < 10:
+            if num_items < 10: # Customers eligible for the express line
                 if registers[-1].current_customer is None:  # Express line empty
                     registers[-1].add_customer(customer)
                 else:
                     find_shortest_register(registers).add_customer(customer)
-            else:
+            else: # Customers not eligible for the express line
                 find_shortest_register(registers[:-1]).add_customer(customer)  # Exclude express
     
-        for register in registers:
-            register.serve_customer()
-            register.update_wait_time()
+        
 
-        if current_time % STATUS_UPDATE_RATE == 0:
+        if current_time % STATUS_UPDATE_RATE == 0: # Update every 50s
             print(f"Time: {current_time} seconds")
-            for i, register in enumerate(registers):
+            for i, register in enumerate(registers): # Iterate through all the registers in registers list
                 queue_status = " | " + " ".join(str(c.num_items) for c in register.queue.items) if not register.queue.isEmpty() else ""
                 current = str(register.current_customer.num_items) if register.current_customer else "--"
                 print(f"Register {i+1}: {current}{queue_status}")
-            print("-" * 40)
+            print("-" * 40) # Seperate every update with hyphens
     
     return registers
             
@@ -192,8 +201,6 @@ def main():
     print(f"Total Idle Time: {extra_idle_time} seconds (vs {avg_idle_time:.2f})")
     print(f"Total Wait Time: {extra_wait_time} seconds (vs {avg_wait_time:.2f})")
     
-    print("\nSimulation complete.")
-
     print("\nSimulation complete.")
     
 # Ensure the script runs when executed directly
