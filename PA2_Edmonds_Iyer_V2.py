@@ -5,8 +5,6 @@ Created on Fri Feb 21 08:29:07 2025
 @author: LAEdmonds
 """
 import random 
-import time 
-import datetime
 
 #edit to commit
 
@@ -45,14 +43,14 @@ class Customer:
     
 class Register:
     def __init__(self):
-        self.queue = Queue()
+        self.queue = Queue() # Initializes an empty queue
         self.current_customer = None
         self.idle_time = 0
         self.wait_time = 0
         self.total_customers_served = 0
         self.total_items_served = 0
         
-    def add_customer(self, customer):
+    def add_customer(self, customer): # Add customer to register queue if empty
         if self.current_customer is None:
             self.current_customer = customer
         else:
