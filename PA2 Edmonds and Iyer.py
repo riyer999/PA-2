@@ -2,20 +2,19 @@
 """
 Created on Wed Feb 19 09:36:09 2025
 
-@author: RIyer
+@author: RIyer 
+@author: LAEdmonds
 """
 
 import random 
 
-#edit to commit
-
 # define constants in seconds
 SECONDS_PER_ITEM = 1 # (from 4)
-OVERHEAD_SECONDS = 10 # (from 45)
-CUSTOMER_ARRIVAL_RATE = 4 # (from 30)
+OVERHEAD_SECONDS = 1 # (from 45)
+CUSTOMER_ARRIVAL_RATE = 2 # (from 30)
 MIN_ITEMS = 6
 MAX_ITEMS = 20 
-SIMULATE_DURATION = 10 # 2 hours in seconds (from 7200)
+SIMULATE_DURATION = 30 # 2 hours in seconds (from 7200)
 STATUS_UPDATE_RATE = 1 # (from 50)
 NUM_SIMULATIONS = 2 # (from 12)
 
@@ -128,135 +127,68 @@ def simulation(extra_register=False): # Later be able to use the extra register
     
     return registers
             
-def main():
-    # Initialize lists to store per-register statistics across simulations
-    num_registers = OG_NUMBER_REGISTERS  # Assume the first simulation gives the number of registers
+def run_simulation(num_registers, extra_register=False):
+    total_customers = [0] * num_registers
+    total_items = [0] * num_registers
+    total_idle_time = [0] * num_registers
+    total_wait_time = [0] * num_registers
     
-    total_customers_per_register = [0] * num_registers
-    total_items_per_register = [0] * num_registers
-    total_idle_time_per_register = [0] * num_registers
-    total_wait_time_per_register = [0] * num_registers
-    
-    print("Starting grocery store simulation...\n")
-    
-    # Run multiple simulations
     for _ in range(NUM_SIMULATIONS):
-        registers = simulation()  # Run one simulation and get register data
+        registers = simulation(extra_register=extra_register)
         
         for i, register in enumerate(registers):
-            total_customers_per_register[i] += register.total_customers_served
-            total_items_per_register[i] += register.total_items_served
-            total_idle_time_per_register[i] += register.idle_time
-            total_wait_time_per_register[i] += register.wait_time
+            total_customers[i] += register.total_customers_served
+            total_items[i] += register.total_items_served
+            total_idle_time[i] += register.idle_time
+            total_wait_time[i] += register.wait_time
     
-    # Compute averages for each register
-    avg_customers_per_register = [total / NUM_SIMULATIONS for total in total_customers_per_register]
-    avg_items_per_register = [total / NUM_SIMULATIONS for total in total_items_per_register]
-    avg_idle_time_per_register = [total / NUM_SIMULATIONS for total in total_idle_time_per_register]
-    avg_wait_time_per_register = [total / NUM_SIMULATIONS for total in total_wait_time_per_register]
+    avg_customers = [total / NUM_SIMULATIONS for total in total_customers]
+    avg_items = [total / NUM_SIMULATIONS for total in total_items]
+    avg_idle_time = [total / NUM_SIMULATIONS for total in total_idle_time]
+    avg_wait_time = [total / NUM_SIMULATIONS for total in total_wait_time]
     
-    # Compute overall totals and averages
-    total_customers = sum(total_customers_per_register)
-    total_items = sum(total_items_per_register)
-    total_idle_time = sum(total_idle_time_per_register)
-    total_wait_time = sum(total_wait_time_per_register)
+    total_customers_sum = sum(total_customers)
+    total_items_sum = sum(total_items)
+    total_idle_time_sum = sum(total_idle_time)
+    total_wait_time_sum = sum(total_wait_time)
     
-    avg_total_customers = total_customers / NUM_SIMULATIONS
-    avg_total_items = total_items / NUM_SIMULATIONS
-    avg_total_idle_time = total_idle_time / NUM_SIMULATIONS
-    avg_total_wait_time = total_wait_time / max(1, total_customers)  # Avoid division by zero
+    avg_total_customers = total_customers_sum / NUM_SIMULATIONS
+    avg_total_items = total_items_sum / NUM_SIMULATIONS
+    avg_total_idle_time = total_idle_time_sum / NUM_SIMULATIONS
+    avg_total_wait_time = total_wait_time_sum / max(1, total_customers_sum)  # Avoid division by zero
     
-    # Store results in a list
-    results = []
-    results.append(f"\nSimulation Summary with 5 Registers (Averages per Register over {NUM_SIMULATIONS} Simulations):")
-    results.append(f"{'Register':<10}{'Avg Customers':<18}{'Avg Items':<15}{'Idle Time (min)':<18}{'Avg Wait Time (sec)':<20}")
-    results.append("-" * 80)
-    
-    for i in range(num_registers):
-        register_name = "Express" if i == num_registers - 1 else str(i + 1)
-        idle_time_min = avg_idle_time_per_register[i] / 60
-        avg_wait_time = avg_wait_time_per_register[i] / max(1, avg_customers_per_register[i])  # Avoid division by zero
-        
-        results.append(f"{register_name:<10}{avg_customers_per_register[i]:<18.2f}{avg_items_per_register[i]:<15.2f}{idle_time_min:<18.2f}{avg_wait_time:<20.2f}")
-    
-    # Print overall totals
-    total_idle_time_min = avg_total_idle_time / 60
-    results.append("-" * 80)
-    results.append(f"{'Total':<10}{avg_total_customers:<18.2f}{avg_total_items:<15.2f}{total_idle_time_min:<18.2f}{avg_total_wait_time:<20.2f}")
-    
-    # Function to print the stored results
-    def print_results():
-        for line in results:
-            print(line)
-    
-    
-    
+    return avg_customers, avg_items, avg_idle_time, avg_wait_time, avg_total_customers, avg_total_items, avg_total_idle_time, avg_total_wait_time, num_registers
 
-
-
-
-    
-    ###############################################################################################################
-    # Compare results with a 6th non-express register
-    print("\nRunning Simulation with 6th Non-Express Register...")
-    
-    # Initialize lists to store per-register statistics across simulations
-    num_registers_extra = EXTRA_NUMBER_REGISTERS  # Get number of registers with extra
-    
-    total_customers_per_register_extra = [0] * num_registers_extra
-    total_items_per_register_extra = [0] * num_registers_extra
-    total_idle_time_per_register_extra = [0] * num_registers_extra
-    total_wait_time_per_register_extra = [0] * num_registers_extra
-    
-    # Run multiple simulations with the extra register
-    for _ in range(NUM_SIMULATIONS):
-        registers = simulation(extra_register=True)  # Run one simulation with 6 registers
-    
-        for i, register in enumerate(registers):
-            total_customers_per_register_extra[i] += register.total_customers_served
-            total_items_per_register_extra[i] += register.total_items_served
-            total_idle_time_per_register_extra[i] += register.idle_time
-            total_wait_time_per_register_extra[i] += register.wait_time
-    
-    # Compute averages for each register
-    avg_customers_per_register_extra = [total / NUM_SIMULATIONS for total in total_customers_per_register_extra]
-    avg_items_per_register_extra = [total / NUM_SIMULATIONS for total in total_items_per_register_extra]
-    avg_idle_time_per_register_extra = [total / NUM_SIMULATIONS for total in total_idle_time_per_register_extra]
-    avg_wait_time_per_register_extra = [total / NUM_SIMULATIONS for total in total_wait_time_per_register_extra]
-    
-    # Compute overall totals and averages
-    total_customers_extra = sum(total_customers_per_register_extra)
-    total_items_extra = sum(total_items_per_register_extra)
-    total_idle_time_extra = sum(total_idle_time_per_register_extra)
-    total_wait_time_extra = sum(total_wait_time_per_register_extra)
-    
-    avg_total_customers_extra = total_customers_extra / NUM_SIMULATIONS
-    avg_total_items_extra = total_items_extra / NUM_SIMULATIONS
-    avg_total_idle_time_extra = total_idle_time_extra / NUM_SIMULATIONS
-    avg_total_wait_time_extra = total_wait_time_extra / max(1, total_customers_extra)  # Avoid division by zero
-    
-    # Print results
-    print(f"\nSimulation Summary with 6 Registers (Averages per Register over {NUM_SIMULATIONS} Simulations):")
+def print_results(title, avg_customers, avg_items, avg_idle_time, avg_wait_time, avg_total_customers, avg_total_items, avg_total_idle_time, avg_total_wait_time, num_registers):
+    print(f"\n{title} (Averages per Register over {NUM_SIMULATIONS} Simulations):")
     print(f"{'Register':<10}{'Avg Customers':<18}{'Avg Items':<15}{'Idle Time (min)':<18}{'Avg Wait Time (sec)':<20}")
     print("-" * 85)
     
-    for i in range(num_registers_extra):
-        register_name = "Express" if i == num_registers_extra - 1 else str(i + 1)
-        idle_time_min = avg_idle_time_per_register_extra[i] / 60
-        avg_wait_time = avg_wait_time_per_register_extra[i] / max(1, avg_customers_per_register_extra[i])  # Avoid division by zero
+    for i in range(num_registers):
+        register_name = "Express" if i == num_registers - 1 else str(i + 1)
+        idle_time_min = avg_idle_time[i] / 60
+        avg_wait_time_per_customer = avg_wait_time[i] / max(1, avg_customers[i])
+        print(f"{register_name:<10}{avg_customers[i]:<18.2f}{avg_items[i]:<15.2f}{idle_time_min:<18.2f}{avg_wait_time_per_customer:<20.2f}")
     
-        print(f"{register_name:<10}{avg_customers_per_register_extra[i]:<18.2f}{avg_items_per_register_extra[i]:<15.2f}{idle_time_min:<18.2f}{avg_wait_time:<20.2f}")
-    
-    # Print overall totals
-    total_idle_time_min_extra = avg_total_idle_time_extra / 60
-    
+    total_idle_time_min = avg_total_idle_time / 60
     print("-" * 85)
-    print(f"{'Total':<10}{avg_total_customers_extra:<18.2f}{avg_total_items_extra:<15.2f}{total_idle_time_min_extra:<18.2f}{avg_total_wait_time_extra:<20.2f}")
-    print_results()
+    print(f"{'Total':<10}{avg_total_customers:<18.2f}{avg_total_items:<15.2f}{total_idle_time_min:<18.2f}{avg_total_wait_time:<20.2f}")
+
+def main():
+    print("Starting grocery store simulation...\n")
+    
+    # Run simulation with 5 registers
+    results_5 = run_simulation(OG_NUMBER_REGISTERS)
+    print_results("Simulation Summary with 5 Registers", *results_5)
+    
+    # Run simulation with 6 registers
+    print("\nRunning Simulation with 6th Non-Express Register...")
+    results_6 = run_simulation(EXTRA_NUMBER_REGISTERS, extra_register=True)
+    print_results("Simulation Summary with 6 Registers", *results_6)
+    print_results("Simulation Summary with 5 Registers", *results_5)
+
     
     print("\nSimulation complete.")
-    
-
 
 # Ensure the script runs when executed directly
 if __name__ == "__main__":
