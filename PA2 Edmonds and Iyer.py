@@ -9,14 +9,14 @@ Created on Wed Feb 19 09:36:09 2025
 import random 
 
 # define constants in seconds
-SECONDS_PER_ITEM = 1 # (from 4)
-OVERHEAD_SECONDS = 1 # (from 45)
-CUSTOMER_ARRIVAL_RATE = 2 # (from 30)
+SECONDS_PER_ITEM = 4 # (from 4)
+OVERHEAD_SECONDS = 45 # (from 45)
+CUSTOMER_ARRIVAL_RATE = 30 # (from 30)
 MIN_ITEMS = 6
 MAX_ITEMS = 20 
-SIMULATE_DURATION = 30 # 2 hours in seconds (from 7200)
-STATUS_UPDATE_RATE = 1 # (from 50)
-NUM_SIMULATIONS = 2 # (from 12)
+SIMULATE_DURATION = 7200 # 2 hours in seconds (from 7200)
+STATUS_UPDATE_RATE = 50 # (from 50)
+NUM_SIMULATIONS = 12 # (from 12)
 
 OG_NUMBER_REGISTERS = 5
 EXTRA_NUMBER_REGISTERS = 6
@@ -155,7 +155,8 @@ def run_simulation(num_registers, extra_register=False):
     avg_total_customers = total_customers_sum / NUM_SIMULATIONS
     avg_total_items = total_items_sum / NUM_SIMULATIONS
     avg_total_idle_time = total_idle_time_sum / NUM_SIMULATIONS
-    avg_total_wait_time = total_wait_time_sum / max(1, total_customers_sum)  # Avoid division by zero
+    #avg_total_wait_time = total_wait_time_sum / max(1, total_customers_sum)  # Avoid division by zero
+    avg_total_wait_time = total_wait_time_sum / total_customers_sum  # Avoid division by zero
     
     return avg_customers, avg_items, avg_idle_time, avg_wait_time, avg_total_customers, avg_total_items, avg_total_idle_time, avg_total_wait_time, num_registers
 
