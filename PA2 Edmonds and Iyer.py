@@ -5,7 +5,7 @@ Created on Wed Feb 19 09:36:09 2025
 @author: RIyer 
 @author: LAEdmonds
 """
-
+# hi LCDR Neumann this is matt abate
 import random 
 
 # define constants in seconds
@@ -59,19 +59,21 @@ class Register:
         else:
             self.queue.enqueue(customer)
         
-    def serve_customer(self): # Increment down checkout time
+    def serve_customer(self): 
         if self.current_customer:
             self.current_customer.checkout_time -= 1
-        
-            if self.current_customer.checkout_time <= 0: # When customer is done
+    
+            if self.current_customer.checkout_time <= 0:  # When customer is done
                 self.total_customers_served += 1 
-                self.total_items_served += self.current_customer.num_items # Increment total num_items
+                self.total_items_served += self.current_customer.num_items
                 self.current_customer = None  # Register is free
-                
+    
                 if not self.queue.isEmpty():
-                    self.current_customer = self.queue.dequeue() 
-            else:
-                self.idle_time += 1 # Count idle time 
+                    self.current_customer = self.queue.dequeue()
+    
+        if self.current_customer is None and self.queue.isEmpty():
+            self.idle_time += 1  # Only increment if register is truly idle
+ 
                 
     def update_wait_time(self):
         if not self.queue.isEmpty():
@@ -97,7 +99,6 @@ def simulation(extra_register=False): # Later be able to use the extra register
         shortest_registers = [r for r in registers if r.queue.size() == min_size]
         return random.choice(shortest_registers)
 
-    
     for current_time in range(SIMULATE_DURATION):
         for register in registers:
             register.serve_customer()
@@ -115,8 +116,6 @@ def simulation(extra_register=False): # Later be able to use the extra register
             else: # Customers not eligible for the express line
                 find_shortest_register(registers[:-1]).add_customer(customer)  # Exclude express
     
-        
-
         if current_time % STATUS_UPDATE_RATE == 0: # Update every 50s
             print(f"Time: {current_time} seconds")
             for i, register in enumerate(registers): # Iterate through all the registers in registers list
@@ -142,8 +141,8 @@ def run_simulation(num_registers, extra_register=False):
             total_idle_time[i] += register.idle_time
             total_wait_time[i] += register.wait_time
     
-    avg_customers = [total / NUM_SIMULATIONS for total in total_customers]
-    avg_items = [total / NUM_SIMULATIONS for total in total_items]
+    total_customers_per_register = total_customers 
+    total_items_per_register = total_items  
     avg_idle_time = [total / NUM_SIMULATIONS for total in total_idle_time]
     avg_wait_time = [total / NUM_SIMULATIONS for total in total_wait_time]
     
@@ -152,24 +151,25 @@ def run_simulation(num_registers, extra_register=False):
     total_idle_time_sum = sum(total_idle_time)
     total_wait_time_sum = sum(total_wait_time)
     
-    avg_total_customers = total_customers_sum / NUM_SIMULATIONS
-    avg_total_items = total_items_sum / NUM_SIMULATIONS
+    avg_total_customers = total_customers_sum 
+    avg_total_items = total_items_sum 
     avg_total_idle_time = total_idle_time_sum / NUM_SIMULATIONS
-    #avg_total_wait_time = total_wait_time_sum / max(1, total_customers_sum)  # Avoid division by zero
-    avg_total_wait_time = total_wait_time_sum / total_customers_sum  # Avoid division by zero
+    avg_total_wait_time = total_wait_time_sum / max(1, total_customers_sum)  # Avoid division by zero
     
-    return avg_customers, avg_items, avg_idle_time, avg_wait_time, avg_total_customers, avg_total_items, avg_total_idle_time, avg_total_wait_time, num_registers
+    return total_customers_per_register, total_items_per_register, avg_idle_time, avg_wait_time, avg_total_customers, avg_total_items, avg_total_idle_time, avg_total_wait_time, num_registers
 
-def print_results(title, avg_customers, avg_items, avg_idle_time, avg_wait_time, avg_total_customers, avg_total_items, avg_total_idle_time, avg_total_wait_time, num_registers):
+def print_results(title, total_customers_per_register, total_items_per_register, avg_idle_time, avg_wait_time, avg_total_customers, avg_total_items, avg_total_idle_time, avg_total_wait_time, num_registers):
     print(f"\n{title} (Averages per Register over {NUM_SIMULATIONS} Simulations):")
-    print(f"{'Register':<10}{'Avg Customers':<18}{'Avg Items':<15}{'Idle Time (min)':<18}{'Avg Wait Time (sec)':<20}")
+    print(f"{'Register':<10}{'Total Customers':<18}{'Total Items':<15}{'Idle Time (min)':<18}{'Avg Wait Time (sec)':<20}")
     print("-" * 85)
     
     for i in range(num_registers):
         register_name = "Express" if i == num_registers - 1 else str(i + 1)
         idle_time_min = avg_idle_time[i] / 60
-        avg_wait_time_per_customer = avg_wait_time[i] / max(1, avg_customers[i])
-        print(f"{register_name:<10}{avg_customers[i]:<18.2f}{avg_items[i]:<15.2f}{idle_time_min:<18.2f}{avg_wait_time_per_customer:<20.2f}")
+        avg_wait_time_per_customer = avg_wait_time[i] / max(1, total_customers_per_register[i])
+
+        print(f"{register_name:<10}{total_customers_per_register[i]:<18}{total_items_per_register[i]:<15}{idle_time_min:<18.2f}{avg_wait_time_per_customer:<20.2f}")
+
     
     total_idle_time_min = avg_total_idle_time / 60
     print("-" * 85)
@@ -188,7 +188,7 @@ def main():
     print_results("Simulation Summary with 6 Registers", *results_6)
     print_results("Simulation Summary with 5 Registers", *results_5)
 
-    
+
     print("\nSimulation complete.")
 
 # Ensure the script runs when executed directly
